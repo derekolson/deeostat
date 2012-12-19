@@ -18,6 +18,7 @@ app.configure(function(){
 });
 
 app.get('/', routes.index);
+app.get('/data', getData);
 
 // Start HTTP/Express Server
 var server = http.createServer(app);
@@ -25,6 +26,52 @@ var server = http.createServer(app);
 server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
+
+//MongoDB - MongoLab Connection
+var mongoose = require('mongoose');
+mongoose.connect(process.env.MONGOLAB_URI || 'mongodb://heroku_app10177423:2h1vr7kbpnkteponseavatndhd@ds045637.mongolab.com:45637/heroku_app10177423');
+
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function callback () {
+  console.log("MongoLab Connected");
+});
+
+
+var SensorSchema = mongoose.Schema({
+  _id: String,
+  type: String,
+  name: String,
+  value: Number
+});
+
+var DataPointSchema = mongoose.Schema({
+  updated: { type: Date, default: Date.now },
+  sensors: [SensorSchema]
+});
+
+var Sensor = mongoose.model('Sensor', SensorSchema);
+var DataPoint = mongoose.model('DataPoint', DataPointSchema);
+
+var tempSensor1 = new Sensor({_id: "0", type: "TEMP", name: "Temp Sensor 1", value: 0});
+var tempSensor2 = new Sensor({_id: "1", type: "TEMP", name: "Temp Sensor 2", value: 0});
+var sensorArray = [tempSensor1, tempSensor2];
+
+//setInterval(saveTestData, 1000);
+function saveTestData() {
+  tempSensor1.value = 65 + Math.random() * 2;
+  tempSensor2.value = 65 + Math.random() * 4;
+  var dp = new DataPoint({updated: new Date(), sensors: sensorArray});
+  dp.save();
+  console.log( tempSensor1.id, tempSensor1.value);
+}
+
+function getData(req, res) {
+  DataPoint.find().sort('-updated').exec(function (arr,data) {
+    res.send(data);
+  });
+}
+
 
 // Socket.io config
 var io = require('socket.io').listen(server);
