@@ -61,7 +61,7 @@ var sensorArray = [tempSensor1, tempSensor2];
 function saveTestData() {
   tempSensor1.value = 65 + Math.random() * 2;
   tempSensor2.value = 65 + Math.random() * 4;
-  var dp = new DataPoint({updated: new Date(), sensors: sensorArray});
+  var dp = new DataPoint({sensors: sensorArray});
   dp.save();
   console.log( tempSensor1.id, tempSensor1.value);
 }
