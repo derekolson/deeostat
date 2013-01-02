@@ -3,6 +3,8 @@ var express = require('express')
   , http = require('http')
   , path = require('path');
 
+
+
 // Express config
 var app = express();
 app.configure(function(){
@@ -35,6 +37,7 @@ var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function callback () {
   console.log("MongoLab Connected");
+  //setTimeout(startSerialPort, 5000);
 });
 
 
@@ -54,17 +57,28 @@ var Sensor = mongoose.model('Sensor', SensorSchema);
 var DataPoint = mongoose.model('DataPoint', DataPointSchema);
 
 var tempSensor1 = new Sensor({_id: "0", type: "TEMP", name: "Temp Sensor 1", value: 0});
-var tempSensor2 = new Sensor({_id: "1", type: "TEMP", name: "Temp Sensor 2", value: 0});
-var sensorArray = [tempSensor1, tempSensor2];
+//var tempSensor2 = new Sensor({_id: "1", type: "TEMP", name: "Temp Sensor 2", value: 0});
+var sensorArray = [tempSensor1];
 
-//setInterval(saveTestData, 1000);
 function saveTestData() {
   tempSensor1.value = 65 + Math.random() * 2;
-  tempSensor2.value = 65 + Math.random() * 4;
+  //tempSensor2.value = 65 + Math.random() * 4;
   var dp = new DataPoint({sensors: sensorArray});
   dp.save();
   console.log( tempSensor1.id, tempSensor1.value);
 }
+
+function getTemperature() {
+  http.get("http://10.10.1.250/sensor", function(res) {
+    //console.log("Got response: " + res.statusCode);
+
+    res.on('data', function (chunk) {
+      console.log(''+chunk);
+    });
+
+  });
+}
+
 
 function getData(req, res) {
   DataPoint.find().sort('-updated').exec(function (arr,data) {
@@ -84,7 +98,56 @@ io.configure(function () {
 
 io.sockets.on('connection', function (socket) {
   console.log('socket connected');
+
+  socket.on('data', updateData);
 });
+
+
+var prevTime = 0;
+function updateData(data) {
+  tempSensor1.value = data.sensor1;
+  io.sockets.emit('data', data);
+
+  var currentTime = new Date();
+  if(currentTime - prevTime > 10000) {
+    prevTime = currentTime;
+    var dp = new DataPoint({sensors: sensorArray});
+    dp.save();
+    console.log("Updated DB");
+  }
+}
+
+
+// // Serial Port
+// var serial = require("serialport");
+// var SerialPort = serial.SerialPort;
+
+// var myPort = new SerialPort("/dev/tty.usbserial-A100ROB5", { 
+//   // look for return and newline at the end of each data packet:
+//   parser: serial.parsers.readline("\n")
+// });
+
+// var serialData;
+// var prevTime = 0;
+
+// function startSerialPort() {
+//   myPort.on('data', function (data) {
+//     serialData = JSON.parse(data);
+    
+//     tempSensor1.value = serialData.sensor1;
+//     io.sockets.emit('data', serialData);
+//     console.log(serialData);
+
+//     var currentTime = new Date();
+//     if(currentTime - prevTime > 10000) {
+//       prevTime = currentTime;
+//       var dp = new DataPoint({sensors: sensorArray});
+//       dp.save();
+//       //console.log("saved");
+//     }
+//   });
+// }
+
 
 // // Twitter Config
 // var twitter = require('ntwitter');
