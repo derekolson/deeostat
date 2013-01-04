@@ -1,18 +1,18 @@
-var io = require('socket.io-client');
-var socket = io.connect('http://localhost:5000', {reconnect: true});
+// var io = require('socket.io-client');
+// var socket = io.connect('http://localhost:5000/sensor', {reconnect: true});
 
-// // Socket.io config
-// var io = require('socket.io').listen(8080);
+// Socket.io config
+var io = require('socket.io').listen(8080);
 
-// io.configure(function () { 
-//   //io.set('transports', ['xhr-polling']); 
-//   //io.set('polling duration', 10);
-//   io.set('log level', 1);
-// });
+io.configure(function () { 
+  //io.set('transports', ['xhr-polling']); 
+  //io.set('polling duration', 10);
+  io.set('log level', 1);
+});
 
-// io.sockets.on('connection', function (socket) {
-//   console.log('socket connected');
-// });
+io.sockets.on('connection', function (socket) {
+  console.log('socket connected');
+});
 
 // Serial Port
 var serial = require('serialport');
@@ -31,8 +31,8 @@ function startSerialPort() {
     
     serialData = JSON.parse(data);
     
-    // io.sockets.emit('data', serialData);
-    socket.emit('data', serialData);
+    io.sockets.emit('data', serialData);
+    //socket.emit('data', serialData);
     //console.log(serialData);
   });
 
