@@ -22,17 +22,15 @@ var myPort = new SerialPort("/dev/tty.usbserial-A100ROB5", {
   parser: serial.parsers.readline("\n")
 });
 
-var serialData, connectInterval;
+var connectInterval;
 
 function startSerialPort() {
 
   myPort.on('data', function (data) {
     clearInterval(connectInterval);
-    
-    serialData = JSON.parse(data);
+    var serialData = JSON.parse(data);
     
     io.sockets.emit('data', serialData);
-    //socket.emit('data', serialData);
     //console.log(serialData);
   });
 

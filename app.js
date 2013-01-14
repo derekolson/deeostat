@@ -39,6 +39,25 @@ db.once('open', function callback () {
   console.log("MongoLab Connected");
 });
 
+// Sensor: 
+// {
+//   id: 0,
+//   type: "TEMP",
+//   name: "Inside Temperature 1",
+//   value: 0
+// }
+
+// DataPoint:
+// {
+//   uid: 12342134,
+//   time: new Date();
+//   sensors: [
+//     {id: 0,
+//      type: "TEMP",
+//      name: "Inside Temperature 1",
+//      value: 65.0}
+//   ]
+// }
 
 var SensorSchema = mongoose.Schema({
   _id: String,
@@ -58,15 +77,6 @@ var DataPoint = mongoose.model('DataPoint', DataPointSchema);
 var tempSensor1 = new Sensor({_id: "0", type: "TEMP", name: "Temp Sensor 1", value: 0});
 var tempSensor2 = new Sensor({_id: "1", type: "TEMP", name: "Temp Sensor 2", value: 0});
 var sensorArray = [tempSensor1];
-
-// function getTemperature() {
-//   http.get("http://10.10.1.250/sensor", function(res) {
-//     res.on('data', function (chunk) {
-//       console.log(''+chunk);
-//     });
-//   });
-// }
-
 
 function getData(req, res) {
   DataPoint.find().sort('-updated').exec(function (arr,data) {
